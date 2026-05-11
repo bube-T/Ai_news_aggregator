@@ -43,29 +43,37 @@ ai_news_aggregator/
 └─ docs/
 ```
 
-## `uv add` Commands (you run these)
+## Install dependencies
 
-Run from the project root after `uv init`.
-
-### Core runtime deps
+Dependencies live in `pyproject.toml`. From the project root:
 
 ```bash
-uv add fastapi uvicorn sqlalchemy alembic psycopg[binary] pydantic pydantic-settings
-uv add feedparser trafilatura readability-lxml beautifulsoup4 lxml requests
-uv add openai jinja2 apscheduler python-dotenv email-validator
+uv sync
+uv sync --group dev   # optional: pytest, ruff, mypy, httpx
 ```
 
-### Optional but recommended extras
+If you do not use `uv`, create a virtualenv and install in editable mode:
 
 ```bash
-uv add tenacity structlog
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e .
+pip install pytest pytest-asyncio httpx ruff mypy
 ```
 
-### Dev/test deps
+Copy `.env.example` to `.env` and set secrets. Start Postgres:
 
 ```bash
-uv add --dev pytest pytest-asyncio httpx ruff mypy
+docker compose -f docker/postgres/docker-compose.yml up -d
 ```
+
+Run the API locally:
+
+```bash
+uv run uvicorn app.main:app --reload
+```
+
+Then open `http://127.0.0.1:8000/health`.
 
 ## Why SMTP first for email
 
@@ -73,6 +81,8 @@ uv add --dev pytest pytest-asyncio httpx ruff mypy
 - No additional paid vendor required to send one daily digest
 - Easy upgrade path later to Resend/SendGrid by swapping `app/services/email/`
 
-## Next Step
+## Next steps (implementation)
 
-Once you confirm, I can create the actual folder tree on disk next.
+1. SQLAlchemy models for `sources` and `articles`, then Alembic migrations.
+2. Ingestion jobs (YouTube RSS, blog fetch + extract).
+3. Daily digest job (OpenAI) and SMTP email send.
